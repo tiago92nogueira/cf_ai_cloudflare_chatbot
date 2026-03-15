@@ -1,0 +1,19 @@
+{
+	"name": "cf-ai-research-agent",
+	"version": "0.0.0",
+	"private": true,
+	"scripts": {
+		"deploy": "wrangler deploy",
+		"dev": "wrangler dev",
+		"start": "wrangler dev",
+		"cf-typegen": "wrangler types"
+	},
+	"devDependencies": {
+		"@types/node": "^25.5.0",
+		"typescript": "^5.5.2",
+		"wrangler": "^4.73.0"
+	},
+	"dependencies": {
+		"agents": "^0.7.6"
+	}
+}
