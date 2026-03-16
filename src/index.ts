@@ -15,7 +15,9 @@ import { DurableObject } from "cloudflare:workers";
 
 
 /** A Durable Object's behavior is defined in an exported Javascript class */
-export class MyDurableObject extends DurableObject {
+export class ResearchAgent extends DurableObject {
+	private messages: { role: string; content: string }[] = [];
+	
 	/**
 	 * The constructor is invoked once upon creation of the Durable Object, i.e. the first call to
 	 * 	`DurableObjectStub::get` for a given identifier (no-op constructors can be omitted)
@@ -37,6 +39,19 @@ export class MyDurableObject extends DurableObject {
 	async sayHello(name: string): Promise<string> {
 		return `Hello, ${name}!`;
 	}
+
+	async chat(userMessage: string): Promise<string> {
+    this.messages.push({ role: "user", content: userMessage }); //saves user msg on the list we declared previously
+
+    const response = await (this.env as any).AI.run(//sends to the LLM for the response
+        "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+        { messages: this.messages }
+    );
+
+    this.messages.push({ role: "assistant", content: response.response });//saves the answer from the LLM on the list as an "assistant" message
+
+    return response.response;
+	}
 }
 
 export default {
@@ -54,12 +69,18 @@ export default {
 		//
 		// Requests from all Workers to the Durable Object instance named "foo"
 		// will go to a single remote Durable Object instance.
-		const stub = env.MY_DURABLE_OBJECT.getByName("foo");
+		const id = env.RESEARCH_AGENT.idFromName("default");
+		const stub = env.RESEARCH_AGENT.get(id) as unknown as ResearchAgent;
 
 		// Call the `sayHello()` RPC method on the stub to invoke the method on
 		// the remote Durable Object instance.
-		const greeting = await stub.sayHello("world");
+		const url = new URL(request.url);
 
-		return new Response(greeting);
+		if (request.method === "POST" && url.pathname === "/chat") {
+ 		const body = await request.json() as { message: string }; //verifies if the request is "post" and extracts the message and passes it to the durable object
+ 		const reply = await stub.chat(body.message); 
+		return Response.json({ reply });
+ 		}
+		return new Response("Not found", { status: 404 });
 	},
 } satisfies ExportedHandler<Env>;
