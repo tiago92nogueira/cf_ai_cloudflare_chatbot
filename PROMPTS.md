@@ -135,3 +135,134 @@ ParsedHtml        : mshtml.HTMLDocumentClass
 RawContentLength  : 1142
 
 apareceu me isto no terminal mas nao no localhost
+
+por onde achas que devo começar o frontend
+
+<body>
+    <div id="messages">
+    </div>
+
+    <div id="input-area">
+        <input type="text" id="..." placeholder="write your question">
+        <button id="...">send</button>
+    </div>
+</body>
+
+o que falta
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Hello, World!</title>
+    </head>
+    <body>
+    <div id="messages">
+    </div>
+
+    <div id="input-area">
+        <input type="text" id="user-input" placeholder="write your question">
+        <button id="send-button">send</button>
+    </div>
+</body>
+</html>
+ajuda me com javascript, nao tenho conhecimento dessa linguagem
+
+o javascript tem de receber a variavel "user-input" que é a pergunta do utilizador, encontra o botão e o input dessa mesma forma, atraves da variavel
+
+<script>
+        const button = document.getElementById("send-button");
+        const input = document.getElementById("user-input");
+        const messages = document.getElementById("messages");
+    </script>
+
+quando o user enviar algo a variavel "user-input" fica preenchida, quando clicar no botao send, o event listener é ativo, dentro do listener teremos de receber a varaivel input e envia la ao worker  
+
+explica me linha a linha o passo 2
+
+envia la de volta para o user, isto é tem de aparecer no ecrã na caixa de texto que declarámos para esse efeito
+
+estou baralhado, onde metemos const data = await response.json(); ? 
+e isto? const p = document.createElement("p"); p.textContent = data.reply; messages.appendChild(p);
+
+vai criar um elemento na pagina, neste caso um text content com a resposta da llm
+```html
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Hello, World!</title>
+	</head>
+	<body>
+    <div id="messages">
+    </div>
+
+    <div id="input-area">
+        <input type="text" id="user-input" placeholder="write your question">
+        <button id="send-button">send</button>
+    </div>
+	<script>
+		const button = document.getElementById("send-button");
+		const input = document.getElementById("user-input");
+		const messages = document.getElementById("messages");
+
+		button.addEventListener("click", async () => {
+			const message = input.value;
+			const response = await fetch("/chat", {
+    			
+				method: "POST",
+    			headers: { "Content-Type": "application/json" },
+    			body: JSON.stringify({ message: message })
+			});
+		    const data = await response.json();
+			const p = document.createElement("p");
+    		p.textContent = data.reply;
+    		messages.appendChild(p);
+		});
+	</script>
+</body>
+	
+</html>
+
+```
+
+o que achas?
+
+responde corretamente as perguntas o que é bom
+
+mas há 2 problemas:
+eu fiz 3 perguntas "quanto é 2+2" "quanto é 2+3" "quais foram as 2 ultimas perguntas que eu fiz"
+apesar de ter respondido bem, ele nao memorizou, isto é, ele na ultima disse que eu nunca tinha feito perguntas
+
+outro problema é que, apesar de mostrar as respostas todas, (a 1a a 2a e 3a) as pergunta snao paarecem, ficando com aquele formato
+
+```html
+button.addEventListener("click", async () => {
+			
+			const message = input.value;
+			
+			const userInput = document.createElement("b");
+			userInput.textContent = message;
+			messages.appendChild(userInput);			
+			
+			const response = await fetch("/chat", {
+    			
+				method: "POST",
+    			headers: { "Content-Type": "application/json" },
+    			body: JSON.stringify({ message: message })
+			});
+		    const data = await response.json();
+			const p = document.createElement("p");
+    		p.textContent = data.reply;
+    		messages.appendChild(p);
+		});
+```
+
+ao que parece ele afinal tem memoria, a bocado devo ter percebido mal, o que é que ainda falta fazer de acordo com o enunciado
+
+a brave search api é completamente gratis e usavel em qualquer pc em que este codigo seja testado?
+é preciso o agente ter memoria em caso de reinicio do server?
+
+ que mais opcoes do requisito de workflow podemos fazer sem que ninguem precise de instalar ou criar contas, apenas com o codigo
