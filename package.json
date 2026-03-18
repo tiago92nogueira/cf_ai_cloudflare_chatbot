@@ -14,6 +14,7 @@
 		"wrangler": "^4.73.0"
 	},
 	"dependencies": {
-		"agents": "^0.7.6"
+		"agents": "^0.7.6",
+		"cloudflare": "^5.2.0"
 	}
 }

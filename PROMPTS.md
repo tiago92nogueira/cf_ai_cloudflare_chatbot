@@ -266,3 +266,8 @@ a brave search api é completamente gratis e usavel em qualquer pc em que este c
 é preciso o agente ter memoria em caso de reinicio do server?
 
  que mais opcoes do requisito de workflow podemos fazer sem que ninguem precise de instalar ou criar contas, apenas com o codigo
+
+ PS C:\Users\James\Desktop\cf_ai_research_agent> npm install cloudflare:workers
+npm error code EUNSUPPORTEDPROTOCOL
+npm error Unsupported URL Type "cloudflare:": cloudflare:workers
+npm error A complete log of this run can be found in: C:\Users\James\AppData\Local\npm-cache\_logs\2026-03-18T13_35_17_810Z-debug-0.log
