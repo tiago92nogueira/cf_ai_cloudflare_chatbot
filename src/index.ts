@@ -1,5 +1,4 @@
-import { DurableObject } from "cloudflare:workers";
-
+import { DurableObject, WorkflowEntrypoint, WorkflowEvent, WorkflowStep } from "cloudflare:workers";
 /**
  * Welcome to Cloudflare Workers! This is your first Durable Objects application.
  *
@@ -15,8 +14,25 @@ import { DurableObject } from "cloudflare:workers";
 
 
 /** A Durable Object's behavior is defined in an exported Javascript class */
+export class LanguageDetectionWorkflow extends WorkflowEntrypoint {
+	async run(event: WorkflowEvent<{ message: string }>, step: WorkflowStep) {
+		const language = await step.do("detect-language", async () => {
+			const responseLanguage = await (this.env as any).AI.run(
+				"@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+				{
+					messages: [
+						{ role: "system", content: "Detect the language of the user message. Reply with ONLY the language name, nothing else. For example: 'Portuguese' or 'English'." },
+						{ role: "user", content: event.payload.message }
+					]
+				}
+			);
+			return responseLanguage.response;
+		});
+		return language;
+	}
+}
+
 export class ResearchAgent extends DurableObject {
-	private messages: { role: string; content: string }[] = [];
 	
 	/**
 	 * The constructor is invoked once upon creation of the Durable Object, i.e. the first call to
@@ -41,16 +57,21 @@ export class ResearchAgent extends DurableObject {
 	}
 
 	async chat(userMessage: string): Promise<string> {
-    this.messages.push({ role: "user", content: userMessage }); //saves user msg on the list we declared previously
+		const stored = await this.ctx.storage.get<{ role: string; content: string }[]>("messages");
+		const messages = stored || [];
 
-    const response = await (this.env as any).AI.run(//sends to the LLM for the response
-        "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
-        { messages: this.messages }
-    );
+		messages.push({ role: "user", content: userMessage });
 
-    this.messages.push({ role: "assistant", content: response.response });//saves the answer from the LLM on the list as an "assistant" message
+		const response = await (this.env as any).AI.run(
+			"@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+			{ messages }
+		);
 
-    return response.response;
+		messages.push({ role: "assistant", content: response.response });
+
+		await this.ctx.storage.put("messages", messages);
+
+		return response.response;
 	}
 }
 
@@ -78,9 +99,19 @@ export default {
 
 		if (request.method === "POST" && url.pathname === "/chat") {
  		const body = await request.json() as { message: string }; //verifies if the request is "post" and extracts the message and passes it to the durable object
- 		const reply = await stub.chat(body.message); 
-		return Response.json({ reply });
- 		}
+ 		const instance = await env.LANGUAGE_WORKFLOW.create({
+    		params: { message: body.message }
+		});
+
+		let status = await instance.status();
+		while (status.status === "running" || status.status === "queued") {
+			await new Promise(r => setTimeout(r, 500));
+			status = await instance.status();
+		}
+
+		const language = status.output as string;
+		const reply = await stub.chat(body.message); 
+		return Response.json({ reply, language }); 		}
 		return new Response("Not found", { status: 404 });
 	},
 } satisfies ExportedHandler<Env>;

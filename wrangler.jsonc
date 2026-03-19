@@ -23,6 +23,13 @@
 	"ai": {
 		"binding": "AI"
 	},
+	"workflows": [
+    {
+        "name": "language-detection",
+        "binding": "LANGUAGE_WORKFLOW",
+        "class_name": "LanguageDetectionWorkflow"
+    }
+	],
 	"observability": {
 		"enabled": true
 	},
